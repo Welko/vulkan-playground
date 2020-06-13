@@ -3,11 +3,18 @@ project(helloworld)
 
 set(CMAKE_CXX_STANDARD 17)
 
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
-#message(STATUS "Cmake module path set to ${CMAKE_MODULE_PATH}")
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ext")
-message(${CMAKE_MODULE_PATH})
+# GLM sets
+set(GLM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/glm/cmake/glm) # TODO make easier to customize
 
+# GLFW sets
+# TODO: don't do it manually...
+set(GLFW_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw-3.3.2.bin.WIN64")
+set(GLFW_INCLUDE_DIR "${GLFW_DIR}/include")
+set(GLFW_LIBRARIES
+        "${GLFW_DIR}/lib-mingw-w64/glfw3.dll"
+        "${GLFW_DIR}/lib-mingw-w64/libglfw3.a"
+        "${GLFW_DIR}/lib-mingw-w64/libglfw3dll.a"
+        )
 # Vulkan
 find_package(Vulkan REQUIRED)
 if(Vulkan_FOUND)
@@ -25,8 +32,7 @@ else()
 endif()
 
 # GLM (OpenGL Mathematics)
-set(GLM_DIR ${CMAKE_MODULE_PATH}/glm/cmake/glm) # TODO make easier to customize
-message(STATUS "GLM root dir set to ${GLM_DIR}")
+message(STATUS "GLM root dir manually set to ${GLM_DIR}")
 find_package(GLM REQUIRED)
 if(GLM_FOUND)
     message(STATUS "GLM found. Include dirs: ${GLM_INCLUDE_DIRS}")
@@ -35,23 +41,14 @@ else()
 endif()
 
 # GLFW (Graphics Library Framework) - for window management
-# GLFW will be built from source! (Source 12/06/2020: https://www.glfw.org/docs/3.3/build_guide.html#build_link_cmake_source)
-# TODO find better/easier way
-    # Disable tests, examples and documentation
-    set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-    # Add subdirectory of the source tree
-    add_subdirectory(${CMAKE_MODULE_PATH}/glfw-3.3.2) # TODO make easier to customize
-    # Now we just need to link the library and that's it!
-
-set(ALL_SRCS
-
-)
+message(STATUS "GLFW dir manually set to ${GLFW_DIR}")
+message(STATUS "GLFW include dir manually set to ${GLFW_INCLUDE_DIR}")
+message(STATUS "GLFW libraries manually set to ${GLFW_LIBRARIES}")
 
 add_executable(HelloWorld
-        ${ALL_SRCS}
         main.cpp
+
+
 )
 
 # TODO does everything here really needs to be public?
@@ -59,11 +56,19 @@ target_include_directories(HelloWorld
         PUBLIC inc
         PUBLIC ${Vulkan_INCLUDE_DIRS}
         PUBLIC ${GLM_INCLUDE_DIRS}
+        PUBLIC ${GLFW_INCLUDE_DIR}
 )
 
 # TODO does everything here really needs to be public?
 target_link_libraries(HelloWorld
         PUBLIC ${Vulkan_LIBRARIES}
-        PUBLIC glfw
+        PUBLIC ${GLFW_LIBRARIES}
         PUBLIC OpenMP::OpenMP_CXX
 )
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    message(STATUS "Debug mode on")
+    add_definitions("-DM_DEBUG")
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+    message(STATUS "Release mode on")
+endif()
