@@ -4,6 +4,7 @@ project(helloworld)
 set(CMAKE_CXX_STANDARD 17)
 
 # GLM sets
+set(CMAKE_EXE_LINKER_FLAGS "-static") # Dunno exactly what it does. TODO: find out
 set(GLM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/ext/glm/cmake/glm) # TODO make easier to customize
 
 # GLFW sets
