@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <vector>
+#include <cstring>
 
 class HelloTriangleApplication {
 public:
@@ -39,6 +40,22 @@ private:
     }
 
     void createInstance() {
+        uint32_t enabledLayerCount;
+        const char *const * enabledLayerNames;
+#ifdef MELO_DEBUG
+        const std::vector<const char*> validationLayers = {
+                "VK_LAYER_KHRONOS_validation"
+        };
+        if (!checkValidationLayerSupport(validationLayers)) {
+            DBT_ERROR("Validation layers requested, but not available!");
+        }
+        enabledLayerCount = validationLayers.size();
+        enabledLayerNames = validationLayers.data();
+#else
+        enabledLayerCount = 0;
+        enabledLayerNames = nullptr;
+#endif
+
         // This data is technically optional, but it may provide some useful information to the driver in order to
         // optimize our specific application (e.g. because it uses a well-known graphics engine with certain special
         // behavior)
@@ -72,7 +89,7 @@ private:
         // Each VkExtensionProperties struct contains the name and version of an extension
         printf("Available extensions:\n");
         for (const auto &extension : extensions) {
-            printf("  %s (version %i)\n", extension.extensionName, (int)extension.specVersion);
+            printf("  %s (version %i)\n", extension.extensionName, extension.specVersion);
         }
 
         // Not optional and tells the Vulkan driver which global extensions and validation layers we want to use. Global
@@ -82,15 +99,52 @@ private:
         //createInfo.pNext = nullptr;
         //createInfo.flags = 0; // must be 0
         createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledLayerCount = 0; // TODO: Determine the global validation layers to enable
-        //createInfo.ppEnabledLayerNames = nullptr;
+        createInfo.enabledLayerCount = enabledLayerCount;
+        createInfo.ppEnabledLayerNames = enabledLayerNames;
         createInfo.enabledExtensionCount = extensionCount_glfw;
         createInfo.ppEnabledExtensionNames = extensions_glfw;
 
         // Finally issue the vkCreateInstance call
         DBT_CV(vkCreateInstance(&createInfo, nullptr, &mInstance)); // pAllocator (callbacks) nullptr TODO: change?
+    }
 
-        printf("Instance should have been created successfully now! :D");
+    bool checkValidationLayerSupport(std::vector<const char*> requiredLayers) {
+        // Check if all of the requested layers are available
+
+        uint32_t layerCount;
+        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+        std::vector<VkLayerProperties> availableLayers(layerCount);
+        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+        printf("Required layers:\n");
+        for (const auto &layerName : requiredLayers) {
+            printf("  %s\n", layerName);
+        }
+        printf("Available layers:\n");
+        for (const auto & layerProperties : availableLayers) {
+            printf("  %s (spec version %i, impl version %i, description: %s)\n",
+                    layerProperties.layerName,
+                    layerProperties.specVersion,
+                    layerProperties.implementationVersion,
+                    layerProperties.description);
+        }
+
+        for (const char* layerName : requiredLayers) {
+            bool layerFound = false;
+            for (const auto& layerProperties : availableLayers) {
+                if (strcmp(layerName, layerProperties.layerName) == 0) {
+                    layerFound = true;
+                    break;
+                }
+            }
+            if (!layerFound) {
+                printf("Required layer %s not available\n", layerName);
+                return false;
+            }
+        }
+
+        return true;
     }
 
     void mainLoop() {
@@ -109,6 +163,8 @@ private:
     GLFWwindow *mWindow;
     uint32_t mWindowWidth = 800;
     uint32_t mWindowHeight = 600;
+
+
 
     VkInstance mInstance;
 };
