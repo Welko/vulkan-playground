@@ -14,7 +14,8 @@
 #define DBT_LOG(string) printf("LOG %s\n", string)
 
 //#define DBT_ERROR(string) printf("ERROR %s\n", string)
-#define DBT_ERROR(string) fprintf(stderr, "ERROR: %s (%s, line %i)\n", string, __FILE__, __LINE__)
+//#define DBT_ERROR(string) fprintf(stderr, "ERROR: %s (%s, line %i)\n", string, __FILE__, __LINE__)
+#define DBT_ERROR(string) fprintf(stderr, "%s (%s, line %i)\n", string, __FILE__, __LINE__)
 
 #else // NDEBUG
 

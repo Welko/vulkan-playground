@@ -53,26 +53,45 @@ namespace dbt {
                 const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
                 void *pUserData) {
 
-            // The first parameter specifies the severity of the message, which is one of the following flags:
-            //
-            //    VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: Diagnostic message
-            //    VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: Informational message like the creation of a resource
-            //    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: Message about behavior that is not necessarily an error,
-            //      but very likely a bug in your application
-            //    VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: Message about behavior that is invalid and may cause
-            //      crashes
-            //
-            // The values of this enumeration are set up in such a way that you can use a comparison operation to check if a
-            //   message is equal or worse compared to some level of severity
+            std::string msg = "Validation layer: ";
+            bool crash = false;
 
-            // The messageType parameter can have the following values:
-            //
-            //    VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: Some event has happened that is unrelated to the
-            //      specification or performance
-            //    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: Something has happened that violates the specification or
-            //      indicates a possible mistake
-            //    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: Potential non-optimal use of Vulkan
+            switch (messageSeverity) {
+                case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+                    msg += "VERBOSE";
+                    break; // Diagnostic message
+                case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+                    msg += "INFO   ";
+                    break; // Informational message like the creation of a resource
+                case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+                    msg += "WARNING";
+                    break; // Message about behavior that is not necessarily an error, but very likely a bug in your application
+                case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+                    msg += "ERROR  ";
+                    crash = true;
+                    break; // Message about behavior that is invalid and may cause crashes
+                default:
+                    msg += "UNKNOWN";
+                    break;
+            }
+            msg += " ";
 
+            switch (messageType) {
+                case VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT:
+                    msg += "GENERAL    ";
+                    break; // Some event has happened that is unrelated to the specification or performance
+                case VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT:
+                    msg += "VALIDATION ";
+                    break; // Something has happened that violates the specification or indicates a possible mistake
+                case VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT:
+                    msg += "PERFORMANCE";
+                    break; // Potential non-optimal use of Vulkan
+                default:
+                    break;
+            }
+            msg += " ";
+
+            // TODO include following information
             // The pCallbackData parameter refers to a VkDebugUtilsMessengerCallbackDataEXT struct containing the details of
             //   the message itself, with the most important members being:
             //
@@ -84,9 +103,12 @@ namespace dbt {
             //   allows you to pass your own data to it.
 
             // TODO replace by own system
-            std::string msg = "Validation layer: ";
             msg += pCallbackData->pMessage;
-            DBT_ERROR(msg.c_str());
+            //DBT_ERROR(msg.c_str());
+
+            // TODO better way?
+            if (crash) throw std::runtime_error(msg);
+            else DBT_ERROR(msg.c_str());
 
             return VK_FALSE;
         }
