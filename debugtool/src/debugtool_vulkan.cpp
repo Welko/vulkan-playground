@@ -61,7 +61,8 @@ namespace dbt {
                     msg += "VERBOSE";
                     break; // Diagnostic message
                 case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-                    msg += "INFO   ";
+                    return VK_FALSE;
+                    //msg += "INFO   ";
                     break; // Informational message like the creation of a resource
                 case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
                     msg += "WARNING";
