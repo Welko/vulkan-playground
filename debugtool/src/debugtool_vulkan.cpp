@@ -92,13 +92,17 @@ namespace dbt {
         }
     }
 
-    void setupMessenger(const VkInstance &instance) {
-        VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+    void populateVkDebugUtilsMessengerCreateInfoEXT(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
         createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = debugCallback;
         createInfo.pUserData = nullptr; // Optional. Will be passed along to the callback function
+    }
+
+    void setupMessenger(const VkInstance &instance) {
+        VkDebugUtilsMessengerCreateInfoEXT createInfo{};
+        populateVkDebugUtilsMessengerCreateInfoEXT(createInfo);
 
         // If k does not match the key of any element in the container, the function inserts a new element with that key
         // and returns a reference to its mapped value
@@ -119,14 +123,14 @@ namespace dbt {
         DestroyDebugUtilsMessengerEXT(instance, debugMessengerReference, nullptr);
     }
 
-    std::vector<const char *> getRequiredExtensions() {
-        return {
+    void getRequiredExtensions(std::vector<const char *> &out) {
+        out = {
                 VK_EXT_DEBUG_UTILS_EXTENSION_NAME
         };
     }
 
-    std::vector<const char *> getRequiredLayers() {
-        return {
+    void getRequiredLayers(std::vector<const char *> &out) {
+        out = {
                 "VK_LAYER_KHRONOS_validation"
         };
     }

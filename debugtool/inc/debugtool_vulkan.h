@@ -18,11 +18,13 @@
 
 namespace dbt {
 
-    void setupMessenger(const VkInstance &) DBT_IFDEBUG_IMPLEMENT()
-    void teardownMessenger(const VkInstance &) DBT_IFDEBUG_IMPLEMENT()
+    void setupMessenger(const VkInstance &) DBT_IFDEBUG_IMPLEMENT_ELSE()
+    void teardownMessenger(const VkInstance &) DBT_IFDEBUG_IMPLEMENT_ELSE()
 
-    std::vector<const char *> getRequiredExtensions() DBT_IFDEBUG_IMPLEMENT({})
-    std::vector<const char *> getRequiredLayers() DBT_IFDEBUG_IMPLEMENT({})
+    void getRequiredExtensions(std::vector<const char *> &out) DBT_IFDEBUG_IMPLEMENT_ELSE()
+    void getRequiredLayers(std::vector<const char *> &out) DBT_IFDEBUG_IMPLEMENT_ELSE()
+
+    void populateVkDebugUtilsMessengerCreateInfoEXT(VkDebugUtilsMessengerCreateInfoEXT &createInfo) DBT_IFDEBUG_IMPLEMENT_ELSE();
 
 }
 

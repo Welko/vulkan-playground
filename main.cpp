@@ -45,7 +45,8 @@ private:
     }
 
     void createInstance() {
-        std::vector<const char *> requiredLayers = dbt::getRequiredLayers();
+        std::vector<const char *> requiredLayers;
+        dbt::getRequiredLayers(requiredLayers);
         uint32_t requiredLayerCount = requiredLayers.size();
 
         if (!checkLayerSupport(requiredLayers)) {
@@ -66,11 +67,18 @@ private:
 
         auto extensions = getRequiredExtensions();
 
+        void *pNext = nullptr;
+#ifdef DBT_DEBUG
+        VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo {};
+        dbt::populateVkDebugUtilsMessengerCreateInfoEXT(debugCreateInfo);
+        pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+#endif
+
         // Not optional and tells the Vulkan driver which global extensions and validation layers we want to use. Global
         // here means that they apply to the entire program and not a specific device
         VkInstanceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO; // must be VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO
-        //createInfo.pNext = nullptr;
+        createInfo.pNext = pNext;
         //createInfo.flags = 0; // must be 0
         createInfo.pApplicationInfo = &appInfo;
         createInfo.enabledLayerCount = requiredLayerCount;
@@ -131,7 +139,9 @@ private:
 
         std::vector<const char*> extensions(extensions_glfw, extensions_glfw + extensionCount_glfw);
 
-        for (const auto &extension : dbt::getRequiredExtensions()) {
+        std::vector<const char*> requiredExtensions;
+        dbt::getRequiredExtensions(requiredExtensions);
+        for (const auto &extension : requiredExtensions) {
             extensions.push_back(extension);
         }
 
