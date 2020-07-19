@@ -1,4 +1,4 @@
-#include "common.h"
+#include "debuglib.h"
 
 // "GLFW will include its own definitions and automatically load the Vulkan header with it"
 // Source: https://vulkan-tutorial.com/en/Drawing_a_triangle/Setup/Base_code
@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <cstdlib>
+#include <vector>
 
 class HelloTriangleApplication {
 public:
@@ -56,6 +57,23 @@ private:
         uint32_t extensionCount_glfw = 0;
         const char** extensions_glfw;
         extensions_glfw = glfwGetRequiredInstanceExtensions(&extensionCount_glfw);
+        printf("Extensions required by GLFW:\n");
+        for (int i = 0; i < extensionCount_glfw; ++i) {
+            const auto extension = extensions_glfw[i];
+            printf("  %s\n", extension);
+        }
+
+        // To retrieve a list of supported extensions before creating an instance
+        uint32_t extensionCount = 0;
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+        std::vector<VkExtensionProperties> extensions(extensionCount);
+        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+
+        // Each VkExtensionProperties struct contains the name and version of an extension
+        printf("Available extensions:\n");
+        for (const auto &extension : extensions) {
+            printf("  %s (version %i)\n", extension.extensionName, (int)extension.specVersion);
+        }
 
         // Not optional and tells the Vulkan driver which global extensions and validation layers we want to use. Global
         // here means that they apply to the entire program and not a specific device
@@ -70,7 +88,7 @@ private:
         createInfo.ppEnabledExtensionNames = extensions_glfw;
 
         // Finally issue the vkCreateInstance call
-        M_CV(vkCreateInstance(&createInfo, nullptr, &mInstance)); // pAllocator (callbacks) nullptr TODO: change?
+        DBT_CV(vkCreateInstance(&createInfo, nullptr, &mInstance)); // pAllocator (callbacks) nullptr TODO: change?
 
         printf("Instance should have been created successfully now! :D");
     }
@@ -82,6 +100,8 @@ private:
     }
 
     void cleanup() {
+        vkDestroyInstance(mInstance, nullptr);
+
         glfwDestroyWindow(mWindow);
         glfwTerminate();
     }

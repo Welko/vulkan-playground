@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.15)
 project(helloworld)
 
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    message(STATUS "Debug mode on")
+    add_definitions("-DM_DEBUG")
+elseif(CMAKE_BUILD_TYPE MATCHES Release)
+    message(STATUS "Release mode on")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 
 # GLM sets
@@ -46,6 +53,8 @@ message(STATUS "GLFW dir manually set to ${GLFW_DIR}")
 message(STATUS "GLFW include dir manually set to ${GLFW_INCLUDE_DIR}")
 message(STATUS "GLFW libraries manually set to ${GLFW_LIBRARIES}")
 
+add_subdirectory(debugtool)
+
 add_executable(HelloWorld
         main.cpp
 
@@ -62,14 +71,8 @@ target_include_directories(HelloWorld
 
 # TODO does everything here really needs to be public?
 target_link_libraries(HelloWorld
+        PUBLIC debuglib
         PUBLIC ${Vulkan_LIBRARIES}
         PUBLIC ${GLFW_LIBRARIES}
         PUBLIC OpenMP::OpenMP_CXX
 )
-
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-    message(STATUS "Debug mode on")
-    add_definitions("-DM_DEBUG")
-elseif(CMAKE_BUILD_TYPE MATCHES Release)
-    message(STATUS "Release mode on")
-endif()
