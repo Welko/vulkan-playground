@@ -1,4 +1,9 @@
-#include "debugtool.h"
+#ifndef NDEBUG
+#define DBT_DEBUG
+#endif
+
+//#include "debugtool.h"
+#include "debugtool_vulkan.h"
 
 // "GLFW will include its own definitions and automatically load the Vulkan header with it"
 // Source: https://vulkan-tutorial.com/en/Drawing_a_triangle/Setup/Base_code
@@ -37,7 +42,7 @@ private:
 
     void initVulkan() {
         createInstance();
-        DBT_IFDEBUG(setupDebugMessenger());
+        dbt::setupMessenger(mInstance);
     }
 
     void createInstance() {
@@ -159,87 +164,6 @@ private:
         return extensions;
     }
 
-#ifdef DBT_DEBUG
-    void setupDebugMessenger() {
-        VkDebugUtilsMessengerCreateInfoEXT createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = debugCallback;
-        createInfo.pUserData = nullptr; // Optional. Will be passed along to the callback function
-
-        DBT_CV(CreateDebugUtilsMessengerEXT(mInstance, &createInfo, nullptr, &mDebugMessenger));
-    }
-
-    VkResult CreateDebugUtilsMessengerEXT(
-            VkInstance instance,
-            const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-            const VkAllocationCallbacks* pAllocator,
-            VkDebugUtilsMessengerEXT* pDebugMessenger) {
-
-        auto procAddr = vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-        auto func = (PFN_vkCreateDebugUtilsMessengerEXT) procAddr;
-        if (func != nullptr) {
-            return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-        } else {
-            return VK_ERROR_EXTENSION_NOT_PRESENT;
-        }
-    }
-
-    void DestroyDebugUtilsMessengerEXT(
-            VkInstance instance,
-            VkDebugUtilsMessengerEXT debugMessenger,
-            const VkAllocationCallbacks* pAllocator) {
-
-        auto procAddr = vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) procAddr;
-        if (func != nullptr) {
-            func(instance, debugMessenger, pAllocator);
-        }
-    }
-
-    static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-            VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-            VkDebugUtilsMessageTypeFlagsEXT messageType,
-            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-            void* pUserData) {
-
-        // The first parameter specifies the severity of the message, which is one of the following flags:
-        //
-        //    VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: Diagnostic message
-        //    VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT: Informational message like the creation of a resource
-        //    VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT: Message about behavior that is not necessarily an error,
-        //      but very likely a bug in your application
-        //    VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT: Message about behavior that is invalid and may cause
-        //      crashes
-        //
-        // The values of this enumeration are set up in such a way that you can use a comparison operation to check if a
-        //   message is equal or worse compared to some level of severity
-
-        // The messageType parameter can have the following values:
-        //
-        //    VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT: Some event has happened that is unrelated to the
-        //      specification or performance
-        //    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT: Something has happened that violates the specification or
-        //      indicates a possible mistake
-        //    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT: Potential non-optimal use of Vulkan
-
-        // The pCallbackData parameter refers to a VkDebugUtilsMessengerCallbackDataEXT struct containing the details of
-        //   the message itself, with the most important members being:
-        //
-        //    pMessage: The debug message as a null-terminated string
-        //    pObjects: Array of Vulkan object handles related to the message
-        //    objectCount: Number of objects in array
-
-        // Finally, the pUserData parameter contains a pointer that was specified during the setup of the callback and
-        //   allows you to pass your own data to it.
-
-        std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
-
-        return VK_FALSE;
-    }
-#endif
-
     void mainLoop() {
         while (!glfwWindowShouldClose(mWindow)) {
             glfwPollEvents(); // Checks for events (like pressing the "close" (X) button)
@@ -247,7 +171,7 @@ private:
     }
 
     void cleanup() {
-        DBT_IFDEBUG(DestroyDebugUtilsMessengerEXT(mInstance, mDebugMessenger, nullptr));
+        dbt::teardownMessenger(mInstance);
         vkDestroyInstance(mInstance, nullptr);
 
         glfwDestroyWindow(mWindow);
@@ -260,9 +184,6 @@ private:
 
     VkInstance mInstance;
 
-#ifdef DBT_DEBUG
-    VkDebugUtilsMessengerEXT mDebugMessenger;
-#endif
 };
 
 int main() {

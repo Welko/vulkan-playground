@@ -1,26 +1,27 @@
 #ifndef DEBUGTOOL_H
 #define DEBUGTOOL_H
 
-// TODO: Do this only on debug mode!
-#ifndef NDEBUG
+#ifdef DBT_DEBUG
 
-#define DBT_DEBUG
-#define DBT_IFDEBUG(statement) statement
-
-// Check Vulkan
-#define DBT_CV(statement) VkResult r = statement; if (r != VK_SUCCESS) fprintf(stderr, "ERROR (Vulkan): %s SHOULD BE %i BUT IS %i (%s, line %i)\n", #statement, VK_SUCCESS, r, __FILE__, __LINE__)
+#define DBT_IFDEBUG_EXECUTE(statement) statement
+#define DBT_IFDEBUG_IMPLEMENT ;
 
 #define DBT_LOG(string) printf("LOG %s\n", string)
 
-#define DBT_ERROR(string) printf("ERROR %s\n", string)
+//#define DBT_ERROR(string) printf("ERROR %s\n", string)
+#define DBT_ERROR(string) fprintf(stderr, "ERROR: %s (%s, line %i)\n", string, __FILE__, __LINE__)
 
 #else // NDEBUG
 
-#define DBT_IFDEF(statement)
-#define DBT_CV(statement) statement
+#define DBT_IFDEBUG_EXECUTE(statement)
+#define DBT_IFDEBUG_IMPLEMENT {}
 #define DBT_LOG(string)
 #define DBT_ERROR(string)
 
-#endif // NDEBUG
+#endif // DBT_DEBUG
+
+namespace dbt {
+
+}
 
 #endif //DEBUGTOOL_H

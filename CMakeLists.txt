@@ -1,13 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(helloworld)
 
-if(CMAKE_BUILD_TYPE MATCHES Debug)
-    message(STATUS "Debug mode on")
-    #add_definitions("-DMELO_DEBUG")
-elseif(CMAKE_BUILD_TYPE MATCHES Release)
-    message(STATUS "Release mode on")
-endif()
-
 set(CMAKE_CXX_STANDARD 17)
 
 # GLM sets
