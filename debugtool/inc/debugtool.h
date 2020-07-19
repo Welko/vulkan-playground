@@ -1,10 +1,15 @@
 #ifndef DEBUGTOOL_H
 #define DEBUGTOOL_H
 
+#include <vector>
+
+// TODO remove
+#define DBT_DEBUG
+
 #ifdef DBT_DEBUG
 
 #define DBT_IFDEBUG_EXECUTE(statement) statement
-#define DBT_IFDEBUG_IMPLEMENT ;
+#define DBT_IFDEBUG_IMPLEMENT(ret) ;
 
 #define DBT_LOG(string) printf("LOG %s\n", string)
 
@@ -14,7 +19,7 @@
 #else // NDEBUG
 
 #define DBT_IFDEBUG_EXECUTE(statement)
-#define DBT_IFDEBUG_IMPLEMENT {}
+#define DBT_IFDEBUG_IMPLEMENT(ret) { return ret; }
 #define DBT_LOG(string)
 #define DBT_ERROR(string)
 

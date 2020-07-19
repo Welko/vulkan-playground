@@ -1,7 +1,6 @@
 #ifndef NDEBUG
 #define DBT_DEBUG
 #endif
-
 //#include "debugtool.h"
 #include "debugtool_vulkan.h"
 
@@ -46,21 +45,12 @@ private:
     }
 
     void createInstance() {
-        uint32_t enabledLayerCount;
-        const char *const * enabledLayerNames;
-#ifdef DBT_DEBUG
-        const std::vector<const char*> validationLayers = {
-                "VK_LAYER_KHRONOS_validation"
-        };
-        if (!checkValidationLayerSupport(validationLayers)) {
-            DBT_ERROR("Validation layers requested, but not available!");
+        std::vector<const char *> requiredLayers = dbt::getRequiredLayers();
+        uint32_t requiredLayerCount = requiredLayers.size();
+
+        if (!checkLayerSupport(requiredLayers)) {
+            DBT_ERROR("Some requested layers were not available.");
         }
-        enabledLayerCount = validationLayers.size();
-        enabledLayerNames = validationLayers.data();
-#else
-        enabledLayerCount = 0;
-        enabledLayerNames = nullptr;
-#endif
 
         // This data is technically optional, but it may provide some useful information to the driver in order to
         // optimize our specific application (e.g. because it uses a well-known graphics engine with certain special
@@ -83,8 +73,8 @@ private:
         //createInfo.pNext = nullptr;
         //createInfo.flags = 0; // must be 0
         createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledLayerCount = enabledLayerCount;
-        createInfo.ppEnabledLayerNames = enabledLayerNames;
+        createInfo.enabledLayerCount = requiredLayerCount;
+        createInfo.ppEnabledLayerNames = requiredLayers.data();
         createInfo.enabledExtensionCount = (uint32_t) extensions.size();
         createInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -92,7 +82,7 @@ private:
         DBT_CV(vkCreateInstance(&createInfo, nullptr, &mInstance)); // pAllocator (callbacks) nullptr TODO: change?
     }
 
-    bool checkValidationLayerSupport(std::vector<const char*> requiredLayers) {
+    bool checkLayerSupport(std::vector<const char*> requiredLayers) {
         // Check if all of the requested layers are available
 
         uint32_t layerCount;
@@ -141,9 +131,9 @@ private:
 
         std::vector<const char*> extensions(extensions_glfw, extensions_glfw + extensionCount_glfw);
 
-#ifdef DBT_DEBUG
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-#endif
+        for (const auto &extension : dbt::getRequiredExtensions()) {
+            extensions.push_back(extension);
+        }
 
         // To retrieve a list of supported extensions before creating an instance
         uint32_t extensionCount = 0;
