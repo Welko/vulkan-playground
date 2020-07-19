@@ -109,7 +109,7 @@ namespace dbt {
 
             // TODO better way?
             if (crash) throw std::runtime_error(msg);
-            else DBT_ERROR(msg.c_str());
+            else DBT_LOG(msg.c_str());
 
             return VK_FALSE;
         }
@@ -139,7 +139,7 @@ namespace dbt {
         auto ite = messengerMap.find(instance);
         if (ite == messengerMap.end()) {
             DBT_ERROR("Unable to tear down VkDebugUtilsMessengerEXT associated with given VkInstance: " \
-                      "VkInstance not found");
+                      "VkInstance not found")
             return;
         }
         VkDebugUtilsMessengerEXT &debugMessengerReference = ite->second;

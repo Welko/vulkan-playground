@@ -4,6 +4,8 @@
 //#include "debugtool.h"
 #include "debugtool_vulkan.h"
 
+#define MELO_EXIT(msg) throw std::runtime_error(msg)
+
 // "GLFW will include its own definitions and automatically load the Vulkan header with it"
 // Source: https://vulkan-tutorial.com/en/Drawing_a_triangle/Setup/Base_code
 #define GLFW_INCLUDE_VULKAN
@@ -42,6 +44,59 @@ private:
     void initVulkan() {
         createInstance();
         dbt::setupMessenger(mInstance);
+        pickPhysicalDevice();
+    }
+
+    void pickPhysicalDevice() {
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+
+        uint32_t deviceCount = 0;
+        vkEnumeratePhysicalDevices(mInstance, &deviceCount, nullptr);
+        if (deviceCount == 0) {
+            MELO_EXIT("No GPU was found that supports Vulkan");
+        }
+        std::string msg = "";
+        msg += std::to_string(deviceCount);
+        msg += " device(s) found";
+        DBT_LOG(msg.c_str());
+
+        std::vector<VkPhysicalDevice> devices(deviceCount);
+        vkEnumeratePhysicalDevices(mInstance, &deviceCount, devices.data());
+        for (const auto &device : devices) {
+            if (isDeviceSuitable(device)) {
+                physicalDevice = device;
+                //break;
+            }
+        }
+
+        if (physicalDevice == VK_NULL_HANDLE) {
+            MELO_EXIT("No suitable GPU found");
+        }
+    }
+
+    bool isDeviceSuitable(VkPhysicalDevice device) {
+        // Basic device properties like the name, type and supported Vulkan version
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+        // Optional features like texture compression, 64 bit floats and multi viewport rendering
+        VkPhysicalDeviceFeatures deviceFeatures;
+        vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+#ifdef DBT_DEBUG
+        std::string msg = "";
+        if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+            msg += "(discrete GPU) ";
+        } else if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+            msg += "(integrated GPU) ";
+        } else if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU) {
+            msg += "(CPU) ";
+        }
+        msg += deviceProperties.deviceName;
+        DBT_LOG(msg.c_str());
+#endif
+
+        return true;
     }
 
     void createInstance() {
@@ -50,7 +105,8 @@ private:
         uint32_t requiredLayerCount = requiredLayers.size();
 
         if (!checkLayerSupport(requiredLayers)) {
-            DBT_ERROR("Some requested layers were not available.");
+            //DBT_ERROR("Some requested layers were not available.");
+            MELO_EXIT("Some requested layers were not available.");
         }
 
         // This data is technically optional, but it may provide some useful information to the driver in order to

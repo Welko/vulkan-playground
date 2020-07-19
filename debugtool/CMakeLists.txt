@@ -1,8 +1,8 @@
 set(DBT_LIBRARIES debuglib)
 set(DBT_INCLUDE_DIRS inc)
-
 add_library(${DBT_LIBRARIES} STATIC
-    src/debugtool_vulkan.cpp
+        src/debugtool.cpp
+        src/debugtool_vulkan.cpp
 )
 
 # TODO does everything here really needs to be public?
