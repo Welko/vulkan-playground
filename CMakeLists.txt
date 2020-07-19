@@ -3,7 +3,7 @@ project(helloworld)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     message(STATUS "Debug mode on")
-    add_definitions("-DMELO_DEBUG")
+    #add_definitions("-DMELO_DEBUG")
 elseif(CMAKE_BUILD_TYPE MATCHES Release)
     message(STATUS "Release mode on")
 endif()
